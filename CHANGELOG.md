@@ -1,3 +1,8 @@
+## 0.2.6
+
+- On service-worker startup, if the active tab is already an agent tab (connect page/group), restore the most recently used non-agent tab.
+- Covers activations that happen before the onActivated listener is registered.
+
 ## 0.2.5
 
 - The connect page is always treated as an agent tab: any activation of it restores the most recently used non-agent tab.

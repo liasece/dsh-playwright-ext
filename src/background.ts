@@ -63,8 +63,16 @@ class PlaywrightExtension {
     this._cleanupPromise = cleanupStalePlaywrightGroups();
     chrome.tabs.onActivated.addListener(this._onTabActivated.bind(this));
     void chrome.tabs.query({ active: true, lastFocusedWindow: true }).then(([tab]) => {
-      if (tab?.id !== undefined && !this._isAgentTab(tab))
+      if (tab?.id === undefined)
+        return;
+      if (!this._isAgentTab(tab)) {
         this._lastUserActiveTabId = tab.id;
+        return;
+      }
+      // The service worker may start after an agent tab was already activated,
+      // so the onActivated event can be missed. Restore the user's tab now.
+      this._lastAgentActionAt = Date.now();
+      void this._onTabActivated({ tabId: tab.id, windowId: tab.windowId });
     }).catch(() => {});
   }
 
