@@ -34,7 +34,7 @@ The tab group, relay protocol, token auth, and connect/status UI are the officia
 
 ## Requirements
 
-- Chrome/Chromium (Manifest V3, tested against Chrome 155).
+- Chrome/Chromium (Manifest V3, targeting Chrome 155; the load-unpacked flow has not been exercised in CI).
 - Node.js 20+ to build the extension.
 - A Playwright MCP server and DSH for the agent side. The extension is discovered by the stock Playwright MCP client through the official extension ID.
 
@@ -74,7 +74,7 @@ The loadable unpacked extension is written to `dist/`.
 
 6. Restart DSH and verify the agent's browser tools appear.
 
-The `@playwright/mcp` path depends on your installation. In a DSH desktop profile it is typically `~/.dsh/profiles/desktop/node_modules/@playwright/mcp/cli.js`.
+The `@playwright/mcp` path depends on your installation. In a DSH desktop profile it is typically `~/.dsh/profiles/desktop/node_modules/@playwright/mcp/cli.js`. Use an absolute node path (for example `/opt/homebrew/bin/node`) if DSH is launched from Finder and does not inherit your shell PATH.
 
 ## Usage
 
