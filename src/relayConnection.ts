@@ -297,7 +297,7 @@ export class RelayConnection {
       // DSH fork: never let the client bring a tab to the front. Playwright's
       // page.bringToFront() uses Target.activateTarget, which is a browser-level
       // command routed through the tab debugger session.
-      if (command === 'Target.activateTarget')
+      if (command === 'Target.activateTarget' || command === 'Page.bringToFront')
         return {};
       const params = args[2] as any;
       if (target?.tabId !== undefined && command === 'Input.dispatchMouseEvent' && params) {

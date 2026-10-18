@@ -1,3 +1,8 @@
+## 0.2.3
+
+- Block `Page.bringToFront` in addition to `Target.activateTarget`.
+- Live retest showed `browser_tabs list` still activated the agent tab on 0.2.2; Playwright uses `Page.bringToFront` for tab targets.
+
 ## 0.2.2
 
 - Block `Target.activateTarget` in the relay: the MCP client can no longer bring a tab to the front.

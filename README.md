@@ -30,7 +30,7 @@ The tab group, relay protocol, token auth, and connect/status UI are the officia
 - A visible `DSH · <tab title>` tab group (connection-time title until a tab is shared) plus a `DSH` toolbar badge.
 - An in-page activity pill and a custom cursor that follows agent clicks (`content/overlay.js`).
 - System notifications when an agent connects or disconnects.
-- The relay blocks `Target.activateTarget`; agent tabs stay in the background and cannot bring themselves to the front.
+- The relay blocks `Target.activateTarget` and `Page.bringToFront`; agent tabs stay in the background and cannot bring themselves to the front.
 - Agent confined to its own tab group; drag tabs in or out to share.
 - Token auth still bypasses the per-connection approval dialog.
 - Reuses your real Chrome profile, cookies, and logged-in sessions.
