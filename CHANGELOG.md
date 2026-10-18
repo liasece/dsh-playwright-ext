@@ -1,3 +1,8 @@
+## 0.2.1
+
+- Group titles now follow page navigation and ignore `Welcome` / `about:blank` / `New Tab`.
+- Documented `--timeout-action` for background-tab clicks.
+
 ## 0.2.0
 
 - DSH toolbar badge and per-tab badge.

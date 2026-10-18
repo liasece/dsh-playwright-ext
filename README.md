@@ -68,6 +68,8 @@ The loadable unpacked extension is written to `dist/`.
         args:
           - /absolute/path/to/@playwright/mcp/cli.js
           - --extension
+          - --timeout-action
+          - "30000"
         env:
           PLAYWRIGHT_MCP_EXTENSION_TOKEN: "<token from the extension status page>"
         toolCallTimeoutMs: 120000
@@ -100,6 +102,7 @@ The `@playwright/mcp` path depends on your installation. In a DSH desktop profil
 - The group title follows the shared tab title or the connection time; there is no rename UI yet.
 - The extension ID is preserved for client compatibility, so the official extension must be removed.
 - The Chrome debugger infobar remains while a tab is attached.
+- Background tabs can hit Playwright's default 5s actionability timeout. The config example raises it with `--timeout-action 30000`; if a click still stalls, use `browser_run_code_unsafe` (raw mouse events) or a foreground tab.
 - No automated test suite; CI verifies the production build.
 
 ## Roadmap

@@ -124,6 +124,8 @@ export class ConnectedTabGroup {
   private _onTabUpdated(tabId: number, changeInfo: chrome.tabs.OnUpdatedInfo, tab: chrome.tabs.Tab): void {
     if (changeInfo.groupId !== undefined)
       this._onTabGroupChanged(tabId, tab);
+    if (changeInfo.title !== undefined && this._groupId !== null && this._connection.attachedTabs.has(tabId))
+      void this._maybeUpdateGroupTitle(tab);
     if (changeInfo.url === undefined)
       return;
     // Chrome resets per-tab badge state on navigation, so re-apply it.
@@ -197,6 +199,15 @@ export class ConnectedTabGroup {
     }
   }
 
+  private async _maybeUpdateGroupTitle(tab: chrome.tabs.Tab): Promise<void> {
+    const title = tab.title?.trim();
+    if (this._groupId === null || !title)
+      return;
+    if (title === 'Welcome' || title === 'about:blank' || title === 'New Tab')
+      return;
+    await chrome.tabGroups.update(this._groupId, { title: ('DSH · ' + title).slice(0, 50) }).catch(() => {});
+  }
+
   // Moves an already-attached tab into our Chrome tab group, creating it on
   // first use. `_groupTabIds` is updated after the await so an onUpdated event
   // that arrives concurrently (`_groupId` still null, wasInGroup still false)
@@ -215,8 +226,8 @@ export class ConnectedTabGroup {
       });
       this._groupTabIds.add(tabId);
       const tab = await chrome.tabs.get(tabId).catch(() => null);
-      if (this._groupId !== null && tab?.title && tab.title !== 'Welcome')
-        await chrome.tabGroups.update(this._groupId, { title: ('DSH · ' + tab.title).slice(0, 50) }).catch(() => {});
+      if (tab)
+        void this._maybeUpdateGroupTitle(tab);
     } catch (error: any) {
       debugLog('Error adding tab to group:', error);
     }
