@@ -77,6 +77,7 @@ export class ConnectedTabGroup {
   private _isTabReserved: (tabId: number) => boolean;
   private _groupId: number | null = null;
   private _groupTabIds: Set<number> = new Set();
+  private _sharedTabIds: Set<number> = new Set();
   private _onTabUpdatedListener: (tabId: number, changeInfo: chrome.tabs.OnUpdatedInfo, tab: chrome.tabs.Tab) => void;
   private _onTabRemovedListener: (tabId: number) => void;
 
@@ -113,7 +114,16 @@ export class ConnectedTabGroup {
   }
 
   isTabInGroup(tabId: number): boolean {
-    return this._groupTabIds.has(tabId);
+    return this._groupTabIds.has(tabId) || this._sharedTabIds.has(tabId);
+  }
+
+  async shareTab(tabId: number): Promise<boolean> {
+    const tab = await chrome.tabs.get(tabId).catch(() => null);
+    if (!tab || tab.id === undefined || isNonDebuggableUrl(tab.url))
+      return false;
+    this._sharedTabIds.add(tabId);
+    this._connection.attachTab(tab);
+    return true;
   }
 
   close(reason: string): void {
@@ -121,6 +131,10 @@ export class ConnectedTabGroup {
   }
 
   releaseTab(tabId: number): void {
+    if (this._sharedTabIds.delete(tabId)) {
+      this._connection.detachTab(tabId);
+      return;
+    }
     if (!this._groupTabIds.has(tabId))
       return;
     this._groupTabIds.delete(tabId);
@@ -173,7 +187,9 @@ export class ConnectedTabGroup {
 
   private _onTabAttached(tabId: number): void {
     void this._updateBadge(tabId, CONNECTED_BADGE);
-    void this._addTabToGroup(tabId);
+    // A shared tab is attached in place; keep it in its original group.
+    if (!this._sharedTabIds.has(tabId))
+      void this._addTabToGroup(tabId);
   }
 
   // The debugger detached (drag-out, tab close, or external action). Clear the

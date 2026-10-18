@@ -1,3 +1,13 @@
+## 0.2.8
+
+- Fixed shared tabs being pulled into the DSH group: `_onTabAttached` now skips tabs in the shared set, so they stay in their original group.
+- Live test: sharing the existing 个人运维中心 tab moved it into a new DSH group; restored to AI and fixed.
+
+## 0.2.7
+
+- Added `dsh-share-tab` / `dsh-unshare-tab`: attach an existing tab to the active relay without moving it into the DSH group or creating a new tab.
+- Shared tabs stay in their original tab group; the guard treats them as agent tabs and restores the user's tab if they activate.
+
 ## 0.2.6
 
 - On service-worker startup, if the active tab is already an agent tab (connect page/group), restore the most recently used non-agent tab.

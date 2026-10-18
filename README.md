@@ -30,6 +30,7 @@ The tab group, relay protocol, token auth, and connect/status UI are the officia
 - A visible `DSH · <tab title>` tab group (connection-time title until a tab is shared) plus a `DSH` toolbar badge.
 - An in-page activity pill and a custom cursor that follows agent clicks (`content/overlay.js`).
 - System notifications when an agent connects or disconnects.
+- Existing tabs can be shared in place (dsh-share-tab): the debugger attaches without moving the tab into the DSH group or creating a new tab.
 - The relay blocks `Target.activateTarget` and `Page.bringToFront`; agent tabs stay in the background and cannot bring themselves to the front.
 - A background guard always reverts activation of the connect page and reverts group-tab activation within 3s of a relay command, restoring the most recently used non-agent tab.
 - Agent confined to its own tab group; drag tabs in or out to share.

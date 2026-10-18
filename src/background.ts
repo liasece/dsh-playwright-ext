@@ -37,6 +37,12 @@ type PageMessage = {
 } | {
   type: 'keepalive';
 } | {
+  type: 'dsh-share-tab';
+  tabId: number;
+} | {
+  type: 'dsh-unshare-tab';
+  tabId: number;
+} | {
   type: 'dsh-overlay-query';
 };
 
@@ -98,6 +104,21 @@ class PlaywrightExtension {
             tabs => sendResponse({ success: true, tabs, currentTabId: sender.tab?.id }),
             (error: any) => sendResponse({ success: false, error: error.message }));
         return true;
+      case 'dsh-share-tab': {
+        const group = [...this._connections.values()][0];
+        if (!group) {
+          sendResponse({ success: false, error: 'no active connection' });
+          return false;
+        }
+        group.shareTab(message.tabId).then(
+            shared => sendResponse({ success: shared }),
+            (error: any) => sendResponse({ success: false, error: error.message }));
+        return true;
+      }
+      case 'dsh-unshare-tab':
+        [...this._connections.values()][0]?.releaseTab(message.tabId);
+        sendResponse({ success: true });
+        return false;
       case 'connectToTab': {
         // Token-bypass (no specific pick) falls back to the connect page itself
         // so `ConnectedTabGroup` always has a concrete tab to start from. Both
