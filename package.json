@@ -1,0 +1,15 @@
+{
+  "name": "dsh-playwright-ext",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A background-friendly fork of the Playwright Extension for DeepSeek Harness",
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.10"
+  }
+}

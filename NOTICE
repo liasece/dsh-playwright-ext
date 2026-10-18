@@ -1,0 +1,10 @@
+Playwright Extension (DSH fork)
+Copyright 2026 liasece
+
+This product includes software developed at Microsoft Corporation as part of
+Playwright (https://github.com/microsoft/playwright), licensed under the
+Apache License, Version 2.0.
+
+The prebuilt browser-extension UI assets under extension/lib/ui are taken from
+the official Playwright Extension 0.4.0 distribution. The background service
+worker is built from the patched sources in src/.
