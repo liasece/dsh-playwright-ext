@@ -136,18 +136,32 @@ class PlaywrightExtension {
     const tab = await chrome.tabs.get(tabId).catch(() => null);
     if (!tab)
       return;
-    if (!this._isAgentTab(tab)) {
+    const isConnect = !!tab.url?.startsWith(`chrome-extension://${chrome.runtime.id}/connect.html`);
+    const isAgent = this._isAgentTab(tab);
+    if (!isAgent) {
       this._lastUserActiveTabId = tabId;
       return;
     }
-    if (Date.now() - this._lastAgentActionAt > 3000)
+    // The connect page is never a user tab: always restore the user's tab.
+    // Group tabs may be clicked by the user intentionally; only override a
+    // recent agent-caused activation.
+    if (!isConnect && Date.now() - this._lastAgentActionAt > 3000)
       return;
-    const previousId = this._lastUserActiveTabId;
-    if (previousId === undefined || previousId === tabId)
-      return;
-    const previous = await chrome.tabs.get(previousId).catch(() => null);
-    if (previous?.id !== undefined && !this._isAgentTab(previous))
-      void chrome.tabs.update(previous.id, { active: true }).catch(() => {});
+    let previousId = this._lastUserActiveTabId;
+    if (previousId !== undefined) {
+      const previous = await chrome.tabs.get(previousId).catch(() => null);
+      if (!previous || this._isAgentTab(previous))
+        previousId = undefined;
+    }
+    if (previousId === undefined) {
+      const tabs = await chrome.tabs.query({ windowId: tab.windowId }).catch(() => []);
+      const candidates = tabs
+          .filter(candidate => candidate.id !== undefined && candidate.id !== tabId && !this._isAgentTab(candidate))
+          .sort((a, b) => (b.lastAccessed ?? 0) - (a.lastAccessed ?? 0));
+      previousId = candidates[0]?.id;
+    }
+    if (previousId !== undefined && previousId !== tabId)
+      void chrome.tabs.update(previousId, { active: true }).catch(() => {});
   }
 
   private _updateGlobalBadge(): void {

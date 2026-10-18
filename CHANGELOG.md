@@ -1,3 +1,8 @@
+## 0.2.5
+
+- The connect page is always treated as an agent tab: any activation of it restores the most recently used non-agent tab.
+- Group tab activation is still reverted only within 3s of a relay command, so the user can inspect the group intentionally.
+
 ## 0.2.4
 
 - Added a background tab-activation guard: within 3s of a relay command, an activation of an agent tab is reverted to the user's last active tab.
