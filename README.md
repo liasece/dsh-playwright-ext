@@ -105,7 +105,7 @@ The `@playwright/mcp` path depends on your installation. In a DSH desktop profil
 - The extension ID is preserved for client compatibility, so the official extension must be removed.
 - The Chrome debugger infobar remains while a tab is attached.
 - The agent cannot activate a tab by design; if it needs a page in front, the user must switch to it.
-- Background tabs can hit Playwright's default 5s actionability timeout. The config example raises it with `--timeout-action 30000`; if a click still stalls, use `browser_run_code_unsafe` (raw mouse events) or a foreground tab.
+- `browser_click` can still time out on background tabs even with `--timeout-action 30000` because Playwright waits for actionability (visible/stable) while Chrome throttles the background tab. Use `browser_run_code_unsafe` with `page.mouse.click(x, y)` (raw CDP mouse events) or `browser_evaluate` for DOM clicks; do not bring the tab to the foreground just to click.
 - No automated test suite; CI verifies the production build.
 
 ## Roadmap
