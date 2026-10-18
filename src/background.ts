@@ -61,6 +61,11 @@ class PlaywrightExtension {
     chrome.runtime.onMessage.addListener(this._onMessage.bind(this));
     chrome.action.onClicked.addListener(this._onActionClicked.bind(this));
     this._cleanupPromise = cleanupStalePlaywrightGroups();
+    chrome.tabs.onActivated.addListener(this._onTabActivated.bind(this));
+    void chrome.tabs.query({ active: true, lastFocusedWindow: true }).then(([tab]) => {
+      if (tab?.id !== undefined && !this._isAgentTab(tab))
+        this._lastUserActiveTabId = tab.id;
+    }).catch(() => {});
   }
 
   // Promise-based message handling is not supported in Chrome: https://issues.chromium.org/issues/40753031
@@ -116,6 +121,35 @@ class PlaywrightExtension {
     }
   }
 
+  private _lastUserActiveTabId: number | undefined;
+  private _lastAgentActionAt = 0;
+
+  private _isAgentTab(tab: chrome.tabs.Tab): boolean {
+    if (tab.url?.startsWith(`chrome-extension://${chrome.runtime.id}/connect.html`))
+      return true;
+    if (tab.id === undefined)
+      return false;
+    return [...this._connections.values()].some(group => group.isTabInGroup(tab.id!));
+  }
+
+  private async _onTabActivated({ tabId }: chrome.tabs.TabActiveInfo): Promise<void> {
+    const tab = await chrome.tabs.get(tabId).catch(() => null);
+    if (!tab)
+      return;
+    if (!this._isAgentTab(tab)) {
+      this._lastUserActiveTabId = tabId;
+      return;
+    }
+    if (Date.now() - this._lastAgentActionAt > 3000)
+      return;
+    const previousId = this._lastUserActiveTabId;
+    if (previousId === undefined || previousId === tabId)
+      return;
+    const previous = await chrome.tabs.get(previousId).catch(() => null);
+    if (previous?.id !== undefined && !this._isAgentTab(previous))
+      void chrome.tabs.update(previous.id, { active: true }).catch(() => {});
+  }
+
   private _updateGlobalBadge(): void {
     const connected = this._connections.size > 0;
     void Promise.all([
@@ -144,6 +178,7 @@ class PlaywrightExtension {
         this._updateGlobalBadge();
         notify('dsh-disconnect-' + id, 'DSH disconnected', 'The agent stopped using this Chrome tab group.');
       };
+      group.onagentaction = () => { this._lastAgentActionAt = Date.now(); };
       this._connections.set(id, group);
       this._updateGlobalBadge();
       notify('dsh-connect-' + id, 'DSH connected', 'Agent tab group: ' + group.groupStyle.title);

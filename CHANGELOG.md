@@ -1,3 +1,8 @@
+## 0.2.4
+
+- Added a background tab-activation guard: within 3s of a relay command, an activation of an agent tab is reverted to the user's last active tab.
+- This is a backstop for activation routes that do not go through the blocked CDP commands.
+
 ## 0.2.3
 
 - Block `Page.bringToFront` in addition to `Target.activateTarget`.

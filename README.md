@@ -31,6 +31,7 @@ The tab group, relay protocol, token auth, and connect/status UI are the officia
 - An in-page activity pill and a custom cursor that follows agent clicks (`content/overlay.js`).
 - System notifications when an agent connects or disconnects.
 - The relay blocks `Target.activateTarget` and `Page.bringToFront`; agent tabs stay in the background and cannot bring themselves to the front.
+- A background guard also reverts any agent-tab activation that happens within 3s of a relay command to the user's last active tab.
 - Agent confined to its own tab group; drag tabs in or out to share.
 - Token auth still bypasses the per-connection approval dialog.
 - Reuses your real Chrome profile, cookies, and logged-in sessions.

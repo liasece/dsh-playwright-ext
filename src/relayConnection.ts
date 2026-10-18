@@ -75,6 +75,7 @@ export class RelayConnection {
 
   onclose?: () => void;
   ontabattached?: (tabId: number) => void;
+  onagentaction?: () => void;
   ontabdetached?: (tabId: number) => void;
 
   get attachedTabs(): ReadonlySet<number> {
@@ -283,6 +284,7 @@ export class RelayConnection {
   }
 
   private async _handleCommand(message: ProtocolCommand): Promise<any> {
+    this.onagentaction?.();
     if (!ALLOWED_CHROME_COMMANDS.has(message.method))
       throw new Error(`Unknown method: ${message.method}`);
     const args = (message.params ?? []) as any[];

@@ -81,6 +81,7 @@ export class ConnectedTabGroup {
   private _onTabRemovedListener: (tabId: number) => void;
 
   onclose?: () => void;
+  onagentaction?: () => void;
 
   constructor(connection: RelayConnection, selectedTab: chrome.tabs.Tab, clientName: string | undefined, groupStyle: GroupStyle, isTabReserved: (tabId: number) => boolean) {
     this.clientName = clientName;
@@ -89,6 +90,7 @@ export class ConnectedTabGroup {
     this._connection = connection;
     this._connection.onclose = () => this._onConnectionClose();
     this._connection.ontabattached = (tabId: number) => this._onTabAttached(tabId);
+    this._connection.onagentaction = () => this.onagentaction?.();
     this._connection.ontabdetached = (tabId: number) => this._onTabDetached(tabId);
     this._onTabUpdatedListener = this._onTabUpdated.bind(this);
     this._onTabRemovedListener = this._onTabRemoved.bind(this);
@@ -108,6 +110,10 @@ export class ConnectedTabGroup {
 
   isTabAttached(tabId: number): boolean {
     return this._connection.attachedTabs.has(tabId);
+  }
+
+  isTabInGroup(tabId: number): boolean {
+    return this._groupTabIds.has(tabId);
   }
 
   close(reason: string): void {
