@@ -28,6 +28,10 @@ type ProtocolCommand = {
   params?: any;
 };
 
+function sendOverlay(tabId: number, payload: Record<string, unknown>): void {
+  void chrome.tabs.sendMessage(tabId, { type: 'dsh-overlay', ...payload }).catch(() => {});
+}
+
 type ProtocolResponse = {
   id?: number;
   method?: string;
@@ -130,11 +134,13 @@ export class RelayConnection {
     this._attachedTabs.add(tabId);
     this._hasEverAttached = true;
     this._pendingReattach.delete(tabId);
+    sendOverlay(tabId, { visible: true });
     this.ontabattached?.(tabId);
   }
 
   private _notifyTabDetached(tabId: number): void {
     this._attachedTabs.delete(tabId);
+    sendOverlay(tabId, { visible: false });
     this.ontabdetached?.(tabId);
   }
 
@@ -284,6 +290,19 @@ export class RelayConnection {
       // DSH fork: the connect page must never steal the active tab.
       const options = (args[0] ?? {}) as chrome.tabs.CreateProperties;
       args[0] = { ...options, active: false };
+    }
+    if (message.method === 'chrome.debugger.sendCommand') {
+      const target = args[0] as chrome.debugger.Debuggee | undefined;
+      const command = args[1] as string | undefined;
+      const params = args[2] as any;
+      if (target?.tabId !== undefined && command === 'Input.dispatchMouseEvent' && params) {
+        sendOverlay(target.tabId, {
+          visible: true,
+          x: typeof params.x === 'number' ? params.x : undefined,
+          y: typeof params.y === 'number' ? params.y : undefined,
+          pressed: params.type === 'mousePressed',
+        });
+      }
     }
     const result = await invokeChromeMethod(message.method, args);
     // Attach bookkeeping; detach flows through the chrome.debugger.onDetach event.

@@ -1,3 +1,11 @@
+## 0.2.0
+
+- DSH toolbar badge and per-tab badge.
+- In-page activity pill and click-following cursor.
+- Task tab groups titled DSH · <tab title> with connection-time fallback.
+- System notifications on connect and disconnect.
+- All relay-created tabs (including the connect page) open in the background.
+
 # Changelog
 
 ## 0.1.0

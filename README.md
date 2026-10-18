@@ -26,15 +26,17 @@ The tab group, relay protocol, token auth, and connect/status UI are the officia
 
 ## Features
 
-- Background connect page: no active-tab switch, no window focus steal.
-- The agent is confined to its own `Playwright · <client>` tab group.
-- Drag tabs into or out of that group to grant or revoke access.
+- Background connect page and background tabs: no active-tab switch, no window focus steal.
+- A visible `DSH · <tab title>` tab group (connection-time title until a tab is shared) plus a `DSH` toolbar badge.
+- An in-page activity pill and a custom cursor that follows agent clicks (`content/overlay.js`).
+- System notifications when an agent connects or disconnects.
+- Agent confined to its own tab group; drag tabs in or out to share.
 - Token auth still bypasses the per-connection approval dialog.
 - Reuses your real Chrome profile, cookies, and logged-in sessions.
 
 ## Requirements
 
-- Chrome/Chromium (Manifest V3, targeting Chrome 155; the load-unpacked flow has not been exercised in CI).
+- Chrome/Chromium (Manifest V3, targeting Chrome 155; smoke-tested in Playwright Chromium 1243, not yet in a real Chrome profile).
 - Node.js 20+ to build the extension.
 - A Playwright MCP server and DSH for the agent side. The extension is discovered by the stock Playwright MCP client through the official extension ID.
 
@@ -85,7 +87,8 @@ The `@playwright/mcp` path depends on your installation. In a DSH desktop profil
 
 ## Security
 
-- Permissions: `debugger`, `activeTab`, `tabs`, `tabGroups`, and `<all_urls>`. The extension can read and control any tab in the profile.
+- Permissions: `debugger`, `activeTab`, `tabs`, `tabGroups`, `notifications`, and `<all_urls>`. The extension can read and control any tab in the profile.
+- `content/overlay.js` is injected into `<all_urls>` to render the activity pill and cursor. It is `pointer-events: none` and only becomes visible for a tab attached to a client.
 - The token authorizes an MCP client to attach to your browser. Treat it like a password and never commit it.
 - The fork preserves the official extension's public key. Load it only from source you trust.
 - Unpacked extensions do not auto-update. Rebase this fork when Playwright's extension changes.
@@ -93,16 +96,20 @@ The `@playwright/mcp` path depends on your installation. In a DSH desktop profil
 ## Limitations
 
 - The connect page still exists (in the background) and the agent's first tab is that page.
-- The agent's tab group is the isolation boundary; there is no per-tab permission prompt.
+- The agent's tab group is the isolation boundary; there is no per-site allowlist or prompt yet.
+- The group title follows the shared tab title or the connection time; there is no rename UI yet.
 - The extension ID is preserved for client compatibility, so the official extension must be removed.
-- No automated tests yet; CI only verifies the production build.
+- The Chrome debugger infobar remains while a tab is attached.
+- No automated test suite; CI verifies the production build.
 
 ## Roadmap
 
+- Per-site allowlists and first-use prompts.
 - A toolbar popup to share the current tab with one click.
-- A dedicated agent tab instead of the connect page.
-- Configurable group name and optional "never activate" diagnostics.
-- Tests for the relay patches and a release workflow with a zip artifact.
+- A side panel / status surface and group rename.
+- A native host or DSH settings page for permissions.
+- Tests for the relay, overlay, and tab-group lifecycle.
+- A release workflow that publishes the zip artifact automatically.
 
 ## Development
 

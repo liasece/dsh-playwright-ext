@@ -16,12 +16,12 @@
 
 import { RelayConnection, debugLog } from './relayConnection';
 
-const PLAYWRIGHT_GROUP_TITLE = 'Playwright';
+const PLAYWRIGHT_GROUP_TITLE = 'DSH';
 const PLAYWRIGHT_GROUP_TITLE_PREFIX = `${PLAYWRIGHT_GROUP_TITLE} · `;
 // Green first, so a lone connection keeps the familiar look.
 const PLAYWRIGHT_GROUP_COLORS: GroupColor[] = ['green', 'blue', 'purple', 'orange', 'pink', 'cyan', 'yellow', 'red'];
 const NON_DEBUGGABLE_SCHEMES = ['chrome:', 'edge:', 'devtools:'];
-const CONNECTED_BADGE = { text: '✓', color: '#4CAF50', title: 'Connected to Playwright client' };
+const CONNECTED_BADGE = { text: 'DSH', color: '#0169cc', title: 'DSH is controlling this tab' };
 
 export function isNonDebuggableUrl(url: string | undefined): boolean {
   return !!url && NON_DEBUGGABLE_SCHEMES.some(s => url.startsWith(s));
@@ -36,7 +36,8 @@ export type GroupStyle = {
 
 export function uniqueGroupStyle(clientName: string | undefined, taken: readonly GroupStyle[]): GroupStyle {
   const titles = new Set(taken.map(style => style.title));
-  const base = PLAYWRIGHT_GROUP_TITLE_PREFIX + (clientName || 'unknown');
+  const stamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const base = PLAYWRIGHT_GROUP_TITLE_PREFIX + (clientName || 'task') + ' · ' + stamp;
   let title = base;
   for (let i = 2; titles.has(title); i++)
     title = `${base} (${i})`;
@@ -103,6 +104,10 @@ export class ConnectedTabGroup {
 
   connectedTabIds(): number[] {
     return [...this._groupTabIds];
+  }
+
+  isTabAttached(tabId: number): boolean {
+    return this._connection.attachedTabs.has(tabId);
   }
 
   close(reason: string): void {
@@ -209,6 +214,9 @@ export class ConnectedTabGroup {
         }
       });
       this._groupTabIds.add(tabId);
+      const tab = await chrome.tabs.get(tabId).catch(() => null);
+      if (this._groupId !== null && tab?.title && tab.title !== 'Welcome')
+        await chrome.tabGroups.update(this._groupId, { title: ('DSH · ' + tab.title).slice(0, 50) }).catch(() => {});
     } catch (error: any) {
       debugLog('Error adding tab to group:', error);
     }

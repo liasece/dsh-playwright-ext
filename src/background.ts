@@ -36,7 +36,18 @@ type PageMessage = {
   connectionId: number;
 } | {
   type: 'keepalive';
+} | {
+  type: 'dsh-overlay-query';
 };
+
+function notify(id: string, title: string, message: string): void {
+  chrome.notifications.create(id, {
+    type: 'basic',
+    iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+    title,
+    message,
+  }).catch(() => {});
+}
 
 class PlaywrightExtension {
   private _connections = new Map<number, ConnectedTabGroup>();
@@ -54,6 +65,12 @@ class PlaywrightExtension {
 
   // Promise-based message handling is not supported in Chrome: https://issues.chromium.org/issues/40753031
   private _onMessage(message: PageMessage, sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) {
+    if (message.type === 'dsh-overlay-query') {
+      const tabId = sender.tab?.id;
+      const visible = tabId !== undefined && [...this._connections.values()].some(group => group.isTabAttached(tabId));
+      sendResponse({ visible });
+      return false;
+    }
     switch (message.type) {
       case 'connectionRequested': {
         const selectorTabId = sender.tab!.id!;
@@ -99,6 +116,15 @@ class PlaywrightExtension {
     }
   }
 
+  private _updateGlobalBadge(): void {
+    const connected = this._connections.size > 0;
+    void Promise.all([
+      chrome.action.setBadgeText({ text: connected ? 'DSH' : '' }),
+      chrome.action.setBadgeBackgroundColor({ color: '#0169cc' }),
+      chrome.action.setTitle({ title: connected ? 'DSH is connected' : 'DSH Playwright Extension' }),
+    ]).catch(() => {});
+  }
+
   private async _connectTab(selectorTabId: number, tab: chrome.tabs.Tab & { id: number }, clientName: string | undefined): Promise<void> {
     try {
       await this._cleanupPromise;
@@ -113,8 +139,14 @@ class PlaywrightExtension {
       const id = ++this._lastConnectionId;
       const taken = [...this._connections.values()].map(group => group.groupStyle);
       const group = new ConnectedTabGroup(connection, tab, clientName, uniqueGroupStyle(clientName, taken), tabId => this._pendingConnections.has(tabId));
-      group.onclose = () => this._connections.delete(id);
+      group.onclose = () => {
+        this._connections.delete(id);
+        this._updateGlobalBadge();
+        notify('dsh-disconnect-' + id, 'DSH disconnected', 'The agent stopped using this Chrome tab group.');
+      };
       this._connections.set(id, group);
+      this._updateGlobalBadge();
+      notify('dsh-connect-' + id, 'DSH connected', 'Agent tab group: ' + group.groupStyle.title);
 
       // DSH fork: keep the user's active tab and window focus untouched.
 
