@@ -1,6 +1,6 @@
 {
   "name": "dsh-playwright-ext",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "description": "A background-friendly fork of the Playwright Extension for DeepSeek Harness",
   "type": "module",

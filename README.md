@@ -30,6 +30,7 @@ The tab group, relay protocol, token auth, and connect/status UI are the officia
 - A visible `DSH · <tab title>` tab group (connection-time title until a tab is shared) plus a `DSH` toolbar badge.
 - An in-page activity pill and a custom cursor that follows agent clicks (`content/overlay.js`).
 - System notifications when an agent connects or disconnects.
+- The relay blocks `Target.activateTarget`; agent tabs stay in the background and cannot bring themselves to the front.
 - Agent confined to its own tab group; drag tabs in or out to share.
 - Token auth still bypasses the per-connection approval dialog.
 - Reuses your real Chrome profile, cookies, and logged-in sessions.
@@ -102,6 +103,7 @@ The `@playwright/mcp` path depends on your installation. In a DSH desktop profil
 - The group title follows the shared tab title or the connection time; there is no rename UI yet.
 - The extension ID is preserved for client compatibility, so the official extension must be removed.
 - The Chrome debugger infobar remains while a tab is attached.
+- The agent cannot activate a tab by design; if it needs a page in front, the user must switch to it.
 - Background tabs can hit Playwright's default 5s actionability timeout. The config example raises it with `--timeout-action 30000`; if a click still stalls, use `browser_run_code_unsafe` (raw mouse events) or a foreground tab.
 - No automated test suite; CI verifies the production build.
 

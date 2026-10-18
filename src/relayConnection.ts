@@ -294,6 +294,11 @@ export class RelayConnection {
     if (message.method === 'chrome.debugger.sendCommand') {
       const target = args[0] as chrome.debugger.Debuggee | undefined;
       const command = args[1] as string | undefined;
+      // DSH fork: never let the client bring a tab to the front. Playwright's
+      // page.bringToFront() uses Target.activateTarget, which is a browser-level
+      // command routed through the tab debugger session.
+      if (command === 'Target.activateTarget')
+        return {};
       const params = args[2] as any;
       if (target?.tabId !== undefined && command === 'Input.dispatchMouseEvent' && params) {
         sendOverlay(target.tabId, {
@@ -305,6 +310,11 @@ export class RelayConnection {
       }
     }
     const result = await invokeChromeMethod(message.method, args);
+    if (message.method === 'chrome.tabs.create') {
+      const created = result as chrome.tabs.Tab | undefined;
+      if (created?.id !== undefined)
+        void chrome.tabs.update(created.id, { active: false }).catch(() => {});
+    }
     // Attach bookkeeping; detach flows through the chrome.debugger.onDetach event.
     if (message.method === 'chrome.debugger.attach') {
       const target = args[0] as chrome.debugger.Debuggee | undefined;

@@ -1,3 +1,9 @@
+## 0.2.2
+
+- Block `Target.activateTarget` in the relay: the MCP client can no longer bring a tab to the front.
+- Re-assert `active: false` after every `chrome.tabs.create`.
+- This follows a live test where `browser_tabs list` switched the user's active Bilibili tab to the agent's Welcome page.
+
 ## 0.2.1
 
 - Group titles now follow page navigation and ignore `Welcome` / `about:blank` / `New Tab`.
